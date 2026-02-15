@@ -1,0 +1,185 @@
+apiVersion: kagent.dev/v1alpha1
+kind: ToolServer
+metadata:
+  name: wake-cycle-tools
+  namespace: kagent
+  labels:
+    app: wake-cycle-agent
+    component: tools
+spec:
+  type: container
+  container:
+    image: ghcr.io/optimus-fulcria/wake-cycle-tools:latest
+    imagePullPolicy: IfNotPresent
+    port: 8000
+    volumeMounts:
+    - name: agent-state
+      mountPath: /data
+    volumes:
+    - name: agent-state
+      persistentVolumeClaim:
+        claimName: agent-state
+    env:
+    - name: STATE_PATH
+      value: /data/state.json
+    - name: BACKLOG_PATH
+      value: /data/backlog.json
+    - name: ACCOMPLISHMENTS_PATH
+      value: /data/accomplishments.json
+    - name: LOG_LEVEL
+      value: info
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  local:
+    tools:
+    - name: read_state
+      description: |
+        Read the agent's current state from persistent storage.
+        Returns the state JSON including wake_count, current_focus, active_tasks, and metrics.
+        Call this at the start of each wake cycle to understand context.
+      inputSchema:
+        type: object
+        properties: {}
+        required: []
+
+    - name: write_state
+      description: |
+        Update the agent's state in persistent storage.
+        Call this before the end of each wake cycle to persist changes.
+        Must include at minimum: current_focus and any updated metrics.
+      inputSchema:
+        type: object
+        properties:
+          state:
+            type: object
+            description: The complete state object to persist
+            properties:
+              current_focus:
+                type: string
+                description: What the agent is currently working on
+              active_tasks:
+                type: array
+                items:
+                  type: string
+                description: List of task IDs currently in progress
+              metrics:
+                type: object
+                description: Updated metrics counters
+        required:
+          - state
+
+    - name: read_backlog
+      description: |
+        Read the agent's task backlog from persistent storage.
+        Returns all tasks with their status (pending, in_progress, completed).
+        Use this to decide what to work on during the wake cycle.
+      inputSchema:
+        type: object
+        properties:
+          status_filter:
+            type: string
+            enum: [pending, in_progress, completed, all]
+            description: Filter tasks by status (default: all)
+        required: []
+
+    - name: update_task
+      description: |
+        Update a task's status in the backlog.
+        Use this to mark tasks as in_progress when starting work,
+        or completed when finished.
+      inputSchema:
+        type: object
+        properties:
+          task_id:
+            type: string
+            description: The ID of the task to update
+          status:
+            type: string
+            enum: [pending, in_progress, completed]
+            description: New status for the task
+          notes:
+            type: string
+            description: Optional notes about the task progress
+        required:
+          - task_id
+          - status
+
+    - name: log_accomplishment
+      description: |
+        Log a completed piece of work.
+        Call this when meaningful work is completed to track accomplishments.
+        Accomplishments are persisted and can be reviewed for accountability.
+      inputSchema:
+        type: object
+        properties:
+          category:
+            type: string
+            enum: [research, coding, automation, analysis, communication, infrastructure]
+            description: Category of the accomplishment
+          description:
+            type: string
+            description: What was accomplished (be specific)
+          impact:
+            type: string
+            enum: [low, medium, high]
+            description: Impact level of the accomplishment
+          artifacts:
+            type: array
+            items:
+              type: string
+            description: List of artifacts created (files, documents, etc.)
+        required:
+          - category
+          - description
+          - impact
+
+    - name: send_notification
+      description: |
+        Send a notification to the principal.
+        Use sparingly - only for urgent matters requiring attention.
+        Non-urgent items should be batched or logged, not notified.
+      inputSchema:
+        type: object
+        properties:
+          message:
+            type: string
+            description: The notification message (be concise)
+          priority:
+            type: string
+            enum: [low, normal, high, urgent]
+            description: Priority level (only high/urgent trigger immediate notification)
+          channel:
+            type: string
+            enum: [email, slack, webhook]
+            description: Notification channel (default: webhook)
+        required:
+          - message
+          - priority
+
+    - name: add_task
+      description: |
+        Add a new task to the backlog.
+        Use this when you identify valuable work that should be tracked.
+        Tasks are persisted and will be available in future wake cycles.
+      inputSchema:
+        type: object
+        properties:
+          title:
+            type: string
+            description: Short title for the task
+          description:
+            type: string
+            description: Detailed description of what needs to be done
+          priority:
+            type: string
+            enum: [low, normal, high, urgent]
+            description: Priority level
+        required:
+          - title
+          - description
+          - priority

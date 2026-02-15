@@ -1,0 +1,60 @@
+{
+  "tasks": [
+    {
+      "id": "research-001",
+      "title": "Research kagent ToolServer patterns",
+      "description": "Read kagent documentation and understand how ToolServers work, including container and local types",
+      "priority": "high",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    },
+    {
+      "id": "research-002",
+      "title": "Analyze MCP protocol specification",
+      "description": "Study the Model Context Protocol to understand tool invocation patterns",
+      "priority": "high",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    },
+    {
+      "id": "code-001",
+      "title": "Implement state persistence",
+      "description": "Create JSON-based state storage with atomic writes and backup",
+      "priority": "high",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    },
+    {
+      "id": "code-002",
+      "title": "Build notification system",
+      "description": "Implement webhook-based notifications for urgent items",
+      "priority": "normal",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    },
+    {
+      "id": "infra-001",
+      "title": "Setup CI/CD pipeline",
+      "description": "Configure GitHub Actions for building and pushing container images",
+      "priority": "normal",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    },
+    {
+      "id": "doc-001",
+      "title": "Write deployment guide",
+      "description": "Document steps to deploy wake-cycle-agent to any Kubernetes cluster",
+      "priority": "normal",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    },
+    {
+      "id": "demo-001",
+      "title": "Record demo video",
+      "description": "Create a 3-5 minute video showing the wake-cycle pattern in action",
+      "priority": "normal",
+      "status": "pending",
+      "created_at": "2026-02-15T00:00:00Z"
+    }
+  ]
+}

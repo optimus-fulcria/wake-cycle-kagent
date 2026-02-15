@@ -1,0 +1,97 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wake-trigger
+  namespace: kagent
+  labels:
+    app: wake-cycle-agent
+    component: scheduler
+spec:
+  # Wake every 15 minutes (adjust as needed)
+  # For demo, use "*/1 * * * *" for 1-minute wakes
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid  # Don't run concurrent wakes
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      labels:
+        app: wake-cycle-agent
+        component: wake-trigger
+    spec:
+      ttlSecondsAfterFinished: 300  # Clean up completed jobs
+      template:
+        spec:
+          serviceAccountName: wake-trigger-sa
+          containers:
+          - name: trigger
+            image: curlimages/curl:8.5.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: KAGENT_CONTROLLER
+              value: "http://kagent-controller.kagent.svc.cluster.local:8080"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+              echo "Triggering wake cycle at $TIMESTAMP"
+
+              # Invoke the wake-cycle-agent
+              HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/response.txt \
+                -X POST "${KAGENT_CONTROLLER}/api/v1/agents/wake-cycle-agent/invoke" \
+                -H "Content-Type: application/json" \
+                -d "{\"message\": \"Wake cycle triggered at $TIMESTAMP\"}")
+
+              if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+                echo "Wake trigger successful (HTTP $HTTP_CODE)"
+                cat /tmp/response.txt
+                exit 0
+              else
+                echo "Wake trigger failed (HTTP $HTTP_CODE)"
+                cat /tmp/response.txt
+                exit 1
+              fi
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                cpu: 100m
+                memory: 64Mi
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wake-trigger-sa
+  namespace: kagent
+  labels:
+    app: wake-cycle-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wake-trigger-role
+  namespace: kagent
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
+- apiGroups: ["kagent.dev"]
+  resources: ["agents"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wake-trigger-rolebinding
+  namespace: kagent
+subjects:
+- kind: ServiceAccount
+  name: wake-trigger-sa
+  namespace: kagent
+roleRef:
+  kind: Role
+  name: wake-trigger-role
+  apiGroup: rbac.authorization.k8s.io
