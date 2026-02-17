@@ -1,0 +1,85 @@
+{
+  "title": "Wake-Cycle Agent Demo",
+  "duration_per_slide": 12,
+  "slides": [
+    {
+      "type": "title",
+      "text": "Wake-Cycle Agent",
+      "subtitle": "Autonomous AI Agents on Kubernetes with kagent"
+    },
+    {
+      "type": "bullets",
+      "title": "The Problem",
+      "items": [
+        "Traditional AI agents are reactive - wait for prompts",
+        "No persistent memory across sessions",
+        "No built-in scheduling or automation",
+        "Missing governance and boundaries"
+      ]
+    },
+    {
+      "type": "bullets",
+      "title": "Wake-Cycle Pattern",
+      "items": [
+        "Agents wake on a schedule (cron)",
+        "Check state and environment",
+        "Perform autonomous work",
+        "Log accomplishments and sleep"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "How It Works",
+      "code": "# Wake cycle flow\nagent.wake()\nagent.read_state()\nagent.check_tasks()\nagent.perform_work()\nagent.log_accomplishments()\nagent.sleep()"
+    },
+    {
+      "type": "bullets",
+      "title": "Architecture",
+      "items": [
+        "kagent Agent CRD with system prompt",
+        "Kubernetes CronJob for wake triggers",
+        "PVC for persistent state storage",
+        "MCP ToolServer with 7 custom tools"
+      ]
+    },
+    {
+      "type": "bullets",
+      "title": "MCP Tools Included",
+      "items": [
+        "read_state / write_state - state management",
+        "read_backlog / update_task - task tracking",
+        "log_accomplishment - work recording",
+        "send_notification - principal alerts",
+        "get_constitution - governance rules"
+      ]
+    },
+    {
+      "type": "bullets",
+      "title": "Constitutional AI Governance",
+      "items": [
+        "AUTONOMOUS: Research, planning, logging",
+        "APPROVAL_REQUIRED: External comms, spending",
+        "FORBIDDEN: Impersonation, unauthorized access",
+        "Boundaries defined in ConfigMap"
+      ]
+    },
+    {
+      "type": "bullets",
+      "title": "Use Cases",
+      "items": [
+        "DevOps: Monitor clusters, scale resources",
+        "Research: Fetch papers, update knowledge base",
+        "Monitoring: Check endpoints, alert on failures",
+        "Automation: Background tasks with boundaries"
+      ]
+    },
+    {
+      "type": "closing",
+      "text": "Wake-Cycle Agent",
+      "links": [
+        "github.com/optimus-fulcria/wake-cycle-kagent",
+        "Built for MCP Agents Hackathon 2026"
+      ]
+    }
+  ]
+}
